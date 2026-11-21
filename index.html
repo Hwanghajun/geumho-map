@@ -375,7 +375,7 @@ window.kakaoSend=function(text,btn){
 </script>
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
 <div id="imgview" style="display:none;position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.85);overflow:auto;padding:12px;text-align:center">
- <div style="color:#fff;font:14px 'Malgun Gothic',sans-serif;margin:4px 0 10px;line-height:1.6"><b>보고서 이미지가 만들어졌습니다</b><br>이미지를 <b>길게 눌러</b> → <b>공유</b> → <b>카카오톡</b>을 고르세요.<br><span style="opacity:.8">(PC에서는 오른쪽 클릭 → 이미지 복사 후 카톡에 붙여넣기)</span></div>
+ <div id="imgview-msg" style="color:#fff;font:14px 'Malgun Gothic',sans-serif;margin:4px 0 10px;line-height:1.6"></div><div style="margin:0 0 10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><a id="imgview-ext" href="#" style="display:none;padding:10px 14px;border-radius:8px;background:#fee500;color:#000;font:700 15px 'Malgun Gothic',sans-serif;text-decoration:none">① 크롬으로 열어 카톡 공유</a><a id="imgview-save" href="#" download="보고서.png" style="padding:10px 14px;border-radius:8px;background:#fff;color:#000;font:700 15px 'Malgun Gothic',sans-serif;text-decoration:none">💾 이미지 저장</a></div>
  <img id="imgview-img" style="max-width:100%;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.5)">
  <div style="margin:12px 0"><button id="imgview-close" style="padding:9px 18px;border-radius:8px;border:none;font:15px 'Malgun Gothic',sans-serif">닫기</button></div>
 </div>
@@ -401,7 +401,7 @@ window.kakaoSend=function(text,btn){
    const file=new File([blob],name+'.png',{type:'image/png'});
    let shared=false;
    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:name});shared=true}catch(e){if(e&&e.name==='AbortError')shared=true}}
-   if(!shared){const img=document.getElementById('imgview-img');img.src=cv.toDataURL('image/png');img.alt=name;document.getElementById('imgview').style.display='block'}
+   if(!shared){const du=cv.toDataURL('image/png');const img=document.getElementById('imgview-img');img.src=du;img.alt=name;const sv=document.getElementById('imgview-save');sv.href=du;sv.download=name+'.png';const kk=/KAKAOTALK/i.test(navigator.userAgent),ex=document.getElementById('imgview-ext'),ms=document.getElementById('imgview-msg');if(kk&&window.__ghURL){const isI=docId==='ib-doc';const key=(document.getElementById(isI?'ib-date':'jb-week')||{}).value;ex.href='kakaotalk://web/openExternal?url='+encodeURIComponent(window.__ghURL(isI?'ilbo':'jubo',key));ex.style.display='inline-block';ex.textContent='① 크롬으로 열어 카톡 공유';sv.textContent='② 이미지 저장';ms.innerHTML='<b>보고서 이미지가 만들어졌습니다</b><br>카톡 안에서 열린 화면이라 바로 공유가 안 됩니다.<br><b>①</b> 노란 버튼 → 크롬이 열리면 <b>📄 문서로 카톡 보내기</b>를 다시 누르세요.<br>또는 <b>②</b> 이미지 저장 → 카톡 채팅방 <b>＋ → 앨범</b>에서 보내기'}else{ex.style.display='none';sv.textContent='💾 이미지 저장';ms.innerHTML='<b>보고서 이미지가 만들어졌습니다</b><br><b>이미지 저장</b> → 카톡 채팅방 <b>＋ → 앨범</b>에서 보내세요.<br><span style="opacity:.8">(PC: 이미지 오른쪽 클릭 → 이미지 복사 → 카톡에 붙여넣기)</span>'}document.getElementById('imgview').style.display='block'}
   }catch(e){alert('문서 이미지를 만들지 못했습니다. 인쇄·PDF로 저장해서 보내주세요.')}
   btn.textContent=o;btn.disabled=false;
  };
@@ -568,7 +568,7 @@ window.closeJubo=()=>{$('jubo').style.display='none';document.body.classList.rem
  const FR=(()=>{try{return window.self!==window.top}catch(e){return true}})();
  const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
  const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s))));
- const ghURL=(open,key)=>{const o={open,key,data:{}};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(ilbo|jubo)-/.test(k))o.data[k]=localStorage.getItem(k)}}catch(e){}return GH+'#sync='+encodeURIComponent(enc(o))};window.__setGH=(a,open,key)=>{a.href=ghURL(open,key)};window.__goGH=(open,key)=>window.open(ghURL(open,key),'_blank');
+ const ghURL=(open,key)=>{const o={open,key,data:{}};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(ilbo|jubo)-/.test(k))o.data[k]=localStorage.getItem(k)}}catch(e){}return GH+'#sync='+encodeURIComponent(enc(o))};window.__setGH=(a,open,key)=>{a.href=ghURL(open,key)};window.__ghURL=ghURL;window.__goGH=(open,key)=>window.open(ghURL(open,key),'_blank');
  window.__FR=FR;
  function handle(){const h=location.hash;if(!h.startsWith('#sync='))return;try{const o=dec(decodeURIComponent(h.slice(6)));Object.entries(o.data||{}).forEach(([k,v])=>{try{localStorage.setItem(k,v)}catch(e){}});history.replaceState(null,'',location.pathname);setTimeout(()=>{if(o.open==='ilbo')openIlbo(o.key);else openJubo(o.key)},400)}catch(e){console.log('sync fail',e)}}
  if(document.readyState==='complete')handle();else window.addEventListener('load',handle);
