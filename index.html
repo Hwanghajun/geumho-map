@@ -485,14 +485,14 @@ $('ib-kakao').addEventListener('click',()=>{render();kakaoSend(window.__ibText,$
 window.openIlbo=(want)=>{const now=new Date();const k=`${now.getMonth()+1}/${now.getDate()}`;const d=(want&&dates.includes(want))?want:dates.includes(k)?k:(dates.find(x=>{const[m,dd]=x.split('/');return new Date(2026,+m-1,+dd)>=new Date(now.getFullYear(),now.getMonth(),now.getDate())})||dates[0]);sel.value=d;load(d);$('ilbo').style.display='block';document.body.classList.add('ilbomode');window.scrollTo(0,0)};
 window.closeIlbo=()=>{$('ilbo').style.display='none';document.body.classList.remove('ilbomode')};
 })();
-document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-jus],[data-close],[data-print],[data-ilbo],[data-jubo]');if(!a)return;e.preventDefault();
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-jus],[data-close],[data-print],[data-ilbo],[data-jubo]');if(!a)return;if(a.tagName==='A'&&a.dataset.print&&window.__FR){window.__setPrintHref(a);return}e.preventDefault();
  if(a.hasAttribute('data-jus'))openJus(a.getAttribute('data-jus')||undefined);
  else if(a.hasAttribute('data-ilbo'))openIlbo();
  else if(a.hasAttribute('data-jubo'))openJubo();
  else if(a.dataset.close==='jubo')closeJubo();
  else if(a.dataset.close==='jusov')closeJus();
  else if(a.dataset.close==='ilbo')closeIlbo();
- else if(a.dataset.print)window.print();},true);
+ else if(a.dataset.print)window.__doPrint();},true);
 </script>
 <script>
 (function(){
@@ -568,9 +568,14 @@ window.closeJubo=()=>{$('jubo').style.display='none';document.body.classList.rem
  const FR=(()=>{try{return window.self!==window.top}catch(e){return true}})();
  const enc=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
  const dec=s=>JSON.parse(decodeURIComponent(escape(atob(s))));
- const ghURL=(open,key)=>{const o={open,key,data:{}};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(ilbo|jubo)-/.test(k))o.data[k]=localStorage.getItem(k)}}catch(e){}return GH+'#sync='+encodeURIComponent(enc(o))};window.__setGH=(a,open,key)=>{a.href=ghURL(open,key)};window.__ghURL=ghURL;window.__goGH=(open,key)=>window.open(ghURL(open,key),'_blank');
+ const ghURL=(open,key,pr)=>{const o={open,key,print:pr?1:0,data:{}};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(/^(ilbo|jubo|kh-log)-/.test(k))o.data[k]=localStorage.getItem(k)}}catch(e){}return GH+'#sync='+encodeURIComponent(enc(o))};
+ const vis=id=>{const e=document.getElementById(id);return e&&e.style.display!=='none'&&e.style.display!==''?true:(e&&getComputedStyle(e).display!=='none')};
+ const ctx=()=>{if(vis('jusov')){const s=document.querySelector('#jusov select#hole');const t=s&&s.options[s.selectedIndex]?s.options[s.selectedIndex].textContent.split(' · ')[0]:'';return['jus',t]}if(vis('jubo'))return['jubo',(document.getElementById('jb-week')||{}).value];return['ilbo',(document.getElementById('ib-date')||{}).value]};
+ window.__setPrintHref=a=>{const c=ctx();a.href=ghURL(c[0],c[1],1)};
+ window.__doPrint=()=>{if(/KAKAOTALK/i.test(navigator.userAgent)){const c=ctx();location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(ghURL(c[0],c[1],1));return}window.print()};
+ if(FR){const conv=()=>document.querySelectorAll('button[data-print]').forEach(b=>{const a=document.createElement('a');a.textContent=b.textContent;a.dataset.print='1';a.target='_blank';a.rel='noopener';a.href=GH;a.style.cssText='display:inline-block;padding:7px 12px;border-radius:6px;background:#1f3352;color:#fff;text-decoration:none;font-weight:700;font-size:14px';['pointerdown','touchstart','mouseover','focus'].forEach(ev=>a.addEventListener(ev,()=>window.__setPrintHref(a),{passive:true}));b.replaceWith(a)});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',conv);else conv()}window.__setGH=(a,open,key)=>{a.href=ghURL(open,key)};window.__ghURL=ghURL;window.__goGH=(open,key)=>window.open(ghURL(open,key),'_blank');
  window.__FR=FR;
- function handle(){const h=location.hash;if(!h.startsWith('#sync='))return;try{const o=dec(decodeURIComponent(h.slice(6)));Object.entries(o.data||{}).forEach(([k,v])=>{try{localStorage.setItem(k,v)}catch(e){}});history.replaceState(null,'',location.pathname);setTimeout(()=>{if(o.open==='ilbo')openIlbo(o.key);else openJubo(o.key)},400)}catch(e){console.log('sync fail',e)}}
+ function handle(){const h=location.hash;if(!h.startsWith('#sync='))return;try{const o=dec(decodeURIComponent(h.slice(6)));Object.entries(o.data||{}).forEach(([k,v])=>{try{localStorage.setItem(k,v)}catch(e){}});history.replaceState(null,'',location.pathname);setTimeout(()=>{if(o.open==='ilbo')openIlbo(o.key);else if(o.open==='jus')openJus(o.key||undefined);else openJubo(o.key);if(o.print)setTimeout(()=>{if(/KAKAOTALK/i.test(navigator.userAgent))location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(GH+h);else window.print()},900)},400)}catch(e){console.log('sync fail',e)}}
  if(document.readyState==='complete')handle();else window.addEventListener('load',handle);
 })();
 </script>
