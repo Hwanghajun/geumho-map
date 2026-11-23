@@ -1,0 +1,17 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카카오내비 길안내</title>
+<style>body{font-family:system-ui,"Malgun Gothic",sans-serif;margin:0;background:#f4f6fa;color:#1b2433;display:flex;min-height:100vh;align-items:center;justify-content:center}
+.b{background:#fff;border-radius:14px;padding:22px;max-width:380px;width:90%;box-shadow:0 6px 24px rgba(0,0,0,.12);text-align:center}
+h1{font-size:22px;margin:0 0 4px}p{margin:4px 0;color:#556}.go{display:block;width:100%;margin-top:16px;padding:16px;font-size:18px;font-weight:700;border:0;border-radius:10px;background:#fee500;color:#191600}
+.sub{display:block;margin-top:10px;padding:12px;border-radius:10px;background:#eef1f5;color:#1b2433;text-decoration:none;font-weight:600}.e{color:#c22;font-size:13px;margin-top:10px}</style>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js" crossorigin="anonymous"></script></head><body>
+<div class="b"><h1 id="t">길안내</h1><p id="a"></p><p style="font-size:13px">카카오내비 · 큰길 우선 · 차종은 내비 앱 설정 따름</p>
+<button class="go" id="go">카카오내비로 안내 시작</button><a class="sub" id="km" target="_blank">카카오맵으로 보기</a><div class="e" id="e"></div></div>
+<script>
+const q=new URLSearchParams(location.search),n=q.get('n')||'목적지',x=parseFloat(q.get('x')),y=parseFloat(q.get('y')),ad=q.get('a')||'';
+document.getElementById('t').textContent=n;document.getElementById('a').textContent=ad;
+document.getElementById('km').href='https://map.kakao.com/link/to/'+encodeURIComponent(n)+','+y+','+x;
+function go(){try{if(!Kakao.isInitialized())Kakao.init('397f48549bf50d9437ca73c194a93164');Kakao.Navi.start({name:n,x:x,y:y,coordType:'wgs84',rpOption:5})}catch(err){document.getElementById('e').textContent='실행 오류: '+err.message}}
+document.getElementById('go').onclick=go;
+if(/Android|iPhone|iPad/i.test(navigator.userAgent)&&q.get('auto')!=='0')setTimeout(go,300);
+</script></body></html>
